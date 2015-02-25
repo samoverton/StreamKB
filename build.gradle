@@ -3,6 +3,7 @@ task wrapper(type: Wrapper) {
 }
 
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = 1.6
 
@@ -11,9 +12,7 @@ version = '1.3-iso'
 jar {
     manifest {
         attributes 'Implementation-Title': 'StreamKB',
-                'Implementation-Version': version,
-                'Main-Class': 'StreamKB',
-                'Class-Path': 'lib/KeyboardHook.jar'
+                'Implementation-Version': version
     }
 }
 
@@ -21,4 +20,62 @@ dependencies {
     compile files('lib/KeyboardHook.jar')
 }
 
-clean {}
+build.mustRunAfter clean
+
+def docsDir = file("$buildDir/doc")
+
+task copyDistFiles(type: Copy) {
+    from 'licence-gpl.txt'
+    from 'readme.txt'
+    into docsDir.getPath()
+}
+
+task createDist(dependsOn: ['clean', 'build']) {
+    outputs.dir docsDir
+    doLast {
+        docsDir.mkdirs()
+        copyDistFiles.execute()
+    }
+}
+
+startScripts {
+    mainClassName "StreamKB"
+}
+
+applicationDistribution.from(createDist) {
+    into "doc"
+}
+
+apply from: "gradle/IO.gradle"
+
+// Modify the Windows start script so that no console is shown when the user starts the app.
+// This also creates a copy of the original start script in case we want to use the console for debugging
+startScripts << {
+
+    def startScriptDir = outputDir.getAbsolutePath()
+    def winStartScript = startScriptDir + "/" + applicationName + ".bat"
+    def winStartScriptCopy = startScriptDir + "/" + applicationName + "WithConsole.bat"
+    def overwriteExistingFile = true
+    copyFile(winStartScript, winStartScriptCopy, overwriteExistingFile)
+
+    modifyFile(winStartScript) {
+        // javaw.exe doesn't have a console
+        if(it.contains("java.exe")){
+            return it.replace("java.exe", "javaw.exe")
+        }
+        // Command that launches the app
+        else if(it.startsWith("\"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%")){
+            return "start \"\" /b " + it
+        }
+        // Leave the line unchanged
+        else{
+            return it
+        }
+    }
+}
+installApp {
+    // Include the additional start script
+    into("bin/"){
+        from(startScripts.outputDir)
+    }
+}
