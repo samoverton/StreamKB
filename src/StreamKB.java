@@ -290,7 +290,7 @@ public class StreamKB extends JPanel {
                                     } else {
                                         mySize = "Big";
                                         for (KBButton b : KB.values()) {
-                                            b.enlarge();
+                                            b.initKeyAppearance(12, 24, 24);
                                         }
                                         frame.pack();
                                     }
