@@ -1,0 +1,24 @@
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.0'
+}
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.6
+
+version = '1.3-iso'
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'StreamKB',
+                'Implementation-Version': version,
+                'Main-Class': 'StreamKB',
+                'Class-Path': 'lib/KeyboardHook.jar'
+    }
+}
+
+dependencies {
+    compile files('lib/KeyboardHook.jar')
+}
+
+clean {}
