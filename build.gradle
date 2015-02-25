@@ -24,17 +24,33 @@ build.mustRunAfter clean
 
 def docsDir = file("$buildDir/doc")
 
-task copyDistFiles(type: Copy) {
+task copyDocFiles(type: Copy) {
     from 'licence-gpl.txt'
     from 'readme.txt'
     into docsDir.getPath()
 }
 
-task createDist(dependsOn: ['clean', 'build']) {
+def licenseDir = file("$buildDir/lib-licenses")
+
+task copyLicenseFiles(type: Copy) {
+    from 'lib/COPYRIGHT'
+    from 'lib/VERSION'
+    into licenseDir.getPath()
+}
+
+task createLicenses {
+    outputs.dir licenseDir
+    doLast {
+        licenseDir.mkdirs()
+        copyLicenseFiles.execute()
+    }
+}
+
+task createDist {
     outputs.dir docsDir
     doLast {
         docsDir.mkdirs()
-        copyDistFiles.execute()
+        copyDocFiles.execute()
     }
 }
 
@@ -44,6 +60,10 @@ startScripts {
 
 applicationDistribution.from(createDist) {
     into "doc"
+}
+
+applicationDistribution.from(createLicenses) {
+    into "lib"
 }
 
 apply from: "gradle/IO.gradle"
