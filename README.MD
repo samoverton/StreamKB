@@ -2,6 +2,12 @@
 
 This is a hacked version of StreamKB 1.3, originally from http://sourceforge.net/projects/streamkb/
 
+#### Build
+```
+./gradlew distZip
+```
+produces the distributable build with startup scripts in `./build/distributions/`.
+
 #### Changes
 * keyboard now uses ISO layout
 
